@@ -1,0 +1,38 @@
+(defun CORES-APLICAR (n / ss i ent ed old)
+  (if (and (numberp n) (>= n 1) (<= n 255))
+    (progn
+      (prompt (strcat "\\nSelecione objetos para aplicar ACI " (itoa n) ": "))
+      (if (setq ss (ssget))
+        (progn
+          (setq i 0)
+          (while (< i (sslength ss))
+            (setq ent (ssname ss i)
+                  ed (entget ent)
+                  old (assoc 62 ed))
+            (if old
+              (setq ed (subst (cons 62 n) old ed))
+              (setq ed (append ed (list (cons 62 n)))))
+            (if (entmod ed) (entupd ent))
+            (setq i (1+ i))
+          )
+          (prompt (strcat "\\nACI " (itoa n) " aplicada."))
+        )
+        (prompt "\\nNenhum objeto selecionado.")
+      )
+    )
+  )
+  (princ)
+)
+
+(defun CORES-COMANDO (n)
+  (eval (list 'defun (read (strcat "c:C" (itoa n))) '() (list 'CORES-APLICAR n) '(princ)))
+)
+
+(setq CORES-N 1)
+(while (<= CORES-N 255)
+  (CORES-COMANDO CORES-N)
+  (setq CORES-N (1+ CORES-N))
+)
+
+(princ "\\nCORES.LSP carregado. Configure aliases C1-C255 no PGP para atalhos.")
+(princ)
